@@ -1,0 +1,14 @@
+*			text=auto
+makefile	eol=lf
+*.bat		eol=crlf
+*.sh		eol=lf
+*.mk		eol=lf
+*.sln		eol=crlf
+*.vcproj	eol=clrf
+*.filters	eol=clrf
+*.inf       eol=crlf
+
+
+
+
+
