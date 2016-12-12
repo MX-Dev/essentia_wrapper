@@ -15,7 +15,7 @@ struct audio_buffer
     int sample_count;
 };
 
-typedef void (*free_audio_buffer_fct)(audio_buffer** buffer);
+typedef void (*free_audio_buffer_fct)(audio_buffer* buffer);
 
 struct audio_file_handle;
 typedef audio_buffer* (*read_audio_fct)(audio_file_handle* file);
@@ -31,9 +31,18 @@ struct callbacks
     progress_fct progress;
 };
 
+enum essentia_ts_type
+{
+    Beat,
+    FadeIn,
+    FadeOut,
+    OnSet
+};
+
 struct essentia_timestamp
 {
     float ts;
+    essentia_ts_type type;
 };
 
 ESSENTIA_WRAPPER_API essentia_timestamp* analyze(callbacks* cb);
