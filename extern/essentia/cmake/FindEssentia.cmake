@@ -31,6 +31,8 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE NEVER)
 
 find_path(Essentia_INCLUDE_DIRS essentia.h PATHS "${Essentia_BASE_PATH}/include" NO_DEFAULT_PATH)
 
+message(STATUS ${Essentia_TARGET_ARCH})
+
 IF(MSVC)
     IF(${Essentia_TARGET_ARCH} STREQUAL i386)
         set(Essentia_LIB_DIR "${Essentia_BASE_PATH}/lib/windows/win32")
