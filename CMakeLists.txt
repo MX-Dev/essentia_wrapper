@@ -39,7 +39,7 @@ set(INSTALL_LIB_TYPE ARCHIVE)
 if(BUILD_SHARED_LIBS)
     # User wants to build Dynamic Libraries, so change the LIB_TYPE variable to CMake keyword 'SHARED'
     set(LIB_TYPE SHARED)
-    IF(MSVC)
+    IF(MSVC OR MINGW)
         SET(INSTALL_LIB_TYPE RUNTIME)
     ELSE()
         SET(INSTALL_LIB_TYPE LIBRARY)
