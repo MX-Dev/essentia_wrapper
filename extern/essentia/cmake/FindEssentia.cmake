@@ -31,13 +31,17 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE NEVER)
 
 find_path(Essentia_INCLUDE_DIRS essentia.h PATHS "${Essentia_BASE_PATH}/include" NO_DEFAULT_PATH)
 
-message(STATUS ${Essentia_TARGET_ARCH})
-
 IF(MSVC)
     IF(${Essentia_TARGET_ARCH} STREQUAL i386)
         set(Essentia_LIB_DIR "${Essentia_BASE_PATH}/lib/windows/win32")
     ELSEIF(${Essentia_TARGET_ARCH} STREQUAL x86_64)
         set(Essentia_LIB_DIR "${Essentia_BASE_PATH}/lib/windows/x64")
+    ENDIF()
+elseif(MINGW)
+    IF(${Essentia_TARGET_ARCH} STREQUAL i386)
+        set(Essentia_LIB_DIR "${Essentia_BASE_PATH}/lib/windows/mingw")
+    ELSEIF(${Essentia_TARGET_ARCH} STREQUAL x86_64)
+        set(Essentia_LIB_DIR "${Essentia_BASE_PATH}/lib/windows/mingw-w64")
     ENDIF()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(Essentia_LIB_DIR "${Essentia_BASE_PATH}/lib/darwin")
@@ -46,8 +50,6 @@ elseif(ANDROID)
 else()
     set(Essentia_LIB_DIR "${Essentia_BASE_PATH}/lib/linux/${Essentia_TARGET_ARCH}")
 endif()
-
-message(STATUS ${Essentia_LIB_DIR})
 
 find_library(Essentia_LIBRARIES NAMES "libessentia" "essentia"  PATHS "${Essentia_LIB_DIR}"  NO_DEFAULT_PATH)
 
