@@ -1,7 +1,7 @@
 #ifndef ONSET_DETECTION_ALGORITHM_H
 #define ONSET_DETECTION_ALGORITHM_H
 
-#include "EssentiaAlgorithm.h"
+#include "IEssentiaAlgorithm.h"
 
 namespace essentiawrapper {
 

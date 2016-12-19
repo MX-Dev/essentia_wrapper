@@ -1,5 +1,5 @@
-#ifndef ESSENTIA_ALGORITHM
-#define ESSENTIA_ALGORITHM
+#ifndef IESSENTIA_ALGORITHM
+#define IESSENTIA_ALGORITHM
 
 #include <memory>
 #include <vector>
@@ -18,4 +18,4 @@ typedef std::shared_ptr<IEssentiaAlgorithm> IEssentiaAlgorithmPtr_t;
 
 }
 
-#endif // ESSENTIA_ALGORITHM
+#endif // IESSENTIA_ALGORITHM

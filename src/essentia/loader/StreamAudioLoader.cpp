@@ -19,7 +19,7 @@ StreamAudioLoader::StreamAudioLoader(const callbacks *cb)
 
 StreamAudioLoader::~StreamAudioLoader()
 {
-
+    closeAudio();
 }
 
 void StreamAudioLoader::declareParameters()
@@ -41,12 +41,12 @@ streaming::AlgorithmStatus StreamAudioLoader::process()
 
     int32_t size = -1;
 
-    audio_buffer* audioBuffer = nullptr;
+    std::shared_ptr<audio_buffer> audioBuffer;
     const char* data = nullptr;
 
     if(_callback)
     {
-        audioBuffer = _callback->read_audio(_callback->audio_file);
+        audioBuffer.reset(_callback->read_audio(_callback->audio_file), _callback->free_audio_buffer);
         if(audioBuffer)
         {
             size = static_cast<int32_t>(audioBuffer->sample_count);
@@ -93,11 +93,6 @@ streaming::AlgorithmStatus StreamAudioLoader::process()
         return streaming::OK;
     }
 
-    if(audioBuffer && _callback)
-    {
-        _callback->free_audio_buffer(audioBuffer);
-    }
-
     shouldStop(true);
     return streaming::FINISHED;
 
@@ -111,6 +106,27 @@ void StreamAudioLoader::reset()
     _nChannels = 2;
     _channels.push(_nChannels);
     _sampleRate.push(static_cast<Real>(44100));
+
+    closeAudio();
+    openAudio();
 }
+
+void StreamAudioLoader::openAudio()
+{
+    if(_callback)
+    {
+        _callback->open_audio(_callback->audio_file, 44100, 2, Float);
+    }
+}
+
+void StreamAudioLoader::closeAudio()
+{
+    if(_callback)
+    {
+        _callback->close_audio(_callback->audio_file);
+    }
+}
+
+
 
 } // namespace essentiawrapper

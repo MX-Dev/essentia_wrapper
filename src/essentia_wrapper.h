@@ -10,24 +10,33 @@ extern "C" {
 
 struct audio_buffer
 {
-    char* buffer;
+    const char* buffer;
     int buffer_size;
     int sample_count;
 };
 
 typedef void (*free_audio_buffer_fct)(audio_buffer* buffer);
 
-struct audio_file_handle;
-typedef audio_buffer* (*read_audio_fct)(audio_file_handle* file);
-typedef audio_file_handle* (*reset_audio_file_fct)(audio_file_handle* file);
+typedef const void* audio_file_handle;
+
+enum essentia_reader_sample_fmt
+{
+    Short,
+    Float
+};
+
+typedef bool (*open_audio_fct)(audio_file_handle file, int sample_rate, int channels, essentia_reader_sample_fmt fmt);
+typedef audio_buffer* (*read_audio_fct)(audio_file_handle file);
+typedef void (*close_audio_file_fct)(audio_file_handle file);
 typedef void (*progress_fct)(float progress);
 
 struct callbacks
 {
-    audio_file_handle* audio_file;
-    free_audio_buffer_fct free_audio_buffer;
+    audio_file_handle audio_file;
+    open_audio_fct open_audio;
     read_audio_fct read_audio;
-    reset_audio_file_fct reset_audio_file;
+    close_audio_file_fct close_audio;
+    free_audio_buffer_fct free_audio_buffer;
     progress_fct progress;
 };
 
@@ -43,10 +52,11 @@ struct essentia_timestamp
 {
     float ts;
     essentia_ts_type type;
+    const char* algo_name;
 };
 
-ESSENTIA_WRAPPER_API essentia_timestamp* analyze(callbacks* cb);
-ESSENTIA_WRAPPER_API void free_essentia_timestamps(essentia_timestamp** ts);
+ESSENTIA_WRAPPER_API essentia_timestamp* essentia_analyze(callbacks* cb, int *count);
+ESSENTIA_WRAPPER_API void free_essentia_timestamps(essentia_timestamp* ts);
 
 #ifdef __cplusplus
 }

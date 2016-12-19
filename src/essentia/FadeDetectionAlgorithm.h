@@ -1,7 +1,7 @@
 #ifndef FADE_DETECTION_ALGORITHM_H
 #define FADE_DETECTION_ALGORITHM_H
 
-#include "EssentiaAlgorithm.h"
+#include "IEssentiaAlgorithm.h"
 
 namespace essentiawrapper {
 

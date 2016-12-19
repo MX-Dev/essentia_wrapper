@@ -1,7 +1,7 @@
 #ifndef BEAT_DETECTION_ALGORITHM_H
 #define BEAT_DETECTION_ALGORITHM_H
 
-#include "EssentiaAlgorithm.h"
+#include "IEssentiaAlgorithm.h"
 
 namespace essentiawrapper {
 

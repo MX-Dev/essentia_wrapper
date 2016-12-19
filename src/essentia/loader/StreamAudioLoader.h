@@ -16,7 +16,10 @@ namespace essentiawrapper {
 
 class StreamAudioLoader : public streaming::Algorithm
 {
-protected:
+private:
+    void openAudio();
+    void closeAudio();
+
     const callbacks *_callback;
 
     streaming::Source<StereoSample> _audio;
