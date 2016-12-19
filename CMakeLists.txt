@@ -105,12 +105,27 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
         -WX")
 endif()
 
+set(VERSION_MAJOR 1)
+set(VERSION_MINOR 0)
+if(ENV{VERSION_BUILD})
+    set(VERSION_BUILD ENV{VERSION_BUILD})
+else()
+    set(VERSION_BUILD 0)
+endif()
+string(TIMESTAMP VERSION_CURRENT_YEAR %Y)
+
+configure_file(${PROJECT_SOURCE_DIR}/version.h.in ${PROJECT_BINARY_DIR}/${PROJECT_NAME}_version.h)
+
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${Essentia_INCLUDE_DIRS})
 
 set(sources_dir ${PROJECT_SOURCE_DIR}/src)
 
 file(GLOB_RECURSE sources ${sources_dir}/*.*)
+
+if(MINGW OR MSVC)
+    set(sources ${sources} ${PROJECT_SOURCE_DIR}/res/${PROJECT_NAME}.rc)
+endif()
 
 set(include_dirs ${include_dirs} ${sources_dir})
 
