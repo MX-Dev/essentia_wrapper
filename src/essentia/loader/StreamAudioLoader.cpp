@@ -50,7 +50,7 @@ streaming::AlgorithmStatus StreamAudioLoader::process()
         if(audioBuffer)
         {
             size = static_cast<int32_t>(audioBuffer->sample_count);
-            data = audioBuffer->buffer;
+            data = reinterpret_cast<const char*>(audioBuffer->buffer);
         }
     }
 

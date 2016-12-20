@@ -14,7 +14,7 @@ void free_essentia_timestamps(essentia_timestamp *ts)
     delete[] ts;
 }
 
-essentia_timestamp *essentia_analyze(callbacks *cb, int *count)
+essentia_timestamp *essentia_analyze(callbacks *cb, uint32_t *count)
 {
     if(count == nullptr)
     {
@@ -24,7 +24,7 @@ essentia_timestamp *essentia_analyze(callbacks *cb, int *count)
     essentiawrapper::BeatDetectionAlgorithm algo;
     std::vector<essentia_timestamp> vec = algo.analyze(cb);
     const size_t size = vec.size();
-    *count = static_cast<int>(size);
+    *count = static_cast<uint32_t>(size);
 
     essentia_timestamp* timestamps = new essentia_timestamp[size];
     std::copy(std::begin(vec), std::end(vec), timestamps);
