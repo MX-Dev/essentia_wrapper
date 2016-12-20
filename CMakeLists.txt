@@ -32,6 +32,10 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 #include cotire
 include(cotire)
 
+#options
+option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
+option(MAINTAINER_INSTALL "Install the library for use it binary in other projects" OFF)
+
 # libtype and install type
 set(LIB_TYPE STATIC)
 set(INSTALL_LIB_TYPE ARCHIVE)
@@ -56,9 +60,6 @@ set(OLD_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/extern/essentia/cmake)
 find_package(Essentia)
 set(CMAKE_MODULE_PATH ${OLD_CMAKE_MODULE_PATH})
-
-option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
-option(MAINTAINER_INSTALL "Install the library for use it binary in other projects" OFF)
 
 # You can tweak some common (for all subprojects) stuff here. For example:
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
