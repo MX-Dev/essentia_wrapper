@@ -20,23 +20,20 @@
  *
  */
 
-#ifndef BEAT_DETECTION_ALGORITHM_H
-#define BEAT_DETECTION_ALGORITHM_H
+#ifndef STREAMING_EXTRACTORLOWLEVEL_H
+#define STREAMING_EXTRACTORLOWLEVEL_H
 
-#include "IEssentiaAlgorithm.h"
+#include "streaming/sourcebase.h"
+#include "pool.h"
+#include "types.h"
 
-namespace essentiawrapper {
+using namespace std;
+using namespace essentia;
+using namespace essentia::streaming;
 
-class BeatDetectionAlgorithm : public IEssentiaAlgorithm
-{
-public:
-    BeatDetectionAlgorithm();
-    virtual ~BeatDetectionAlgorithm();
+void LowLevelSpectral(SourceBase &input, Pool &pool, const Pool &options, const string &nspace = "");
+void LowLevelSpectralEqLoud(SourceBase &input, Pool &pool, const Pool &options, const string &nspace = "");
+void Level(SourceBase &input, Pool &pool, const Pool &options, const string &nspace = "");
+void LevelAverage(Pool &pool, const string &nspace = "");
 
-    // IEssentiaAlgorithm interface
-    virtual std::vector<essentia_timestamp> analyze(callbacks *cb) override;
-};
-
-} // namespace essentiawrapper
-
-#endif // BEAT_DETECTION_ALGORITHM_H
+#endif // STREAMING_EXTRACTORLOWLEVEL_H

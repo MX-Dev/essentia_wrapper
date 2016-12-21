@@ -20,23 +20,21 @@
  *
  */
 
-#ifndef BEAT_DETECTION_ALGORITHM_H
-#define BEAT_DETECTION_ALGORITHM_H
 
-#include "IEssentiaAlgorithm.h"
+#ifndef STREAMING_EXTRACTORTONAL_H
+#define STREAMING_EXTRACTORTONAL_H
 
-namespace essentiawrapper {
+#include "streaming/sourcebase.h"
+#include "pool.h"
+#include "types.h"
 
-class BeatDetectionAlgorithm : public IEssentiaAlgorithm
-{
-public:
-    BeatDetectionAlgorithm();
-    virtual ~BeatDetectionAlgorithm();
+using namespace std;
+using namespace essentia;
+using namespace essentia::streaming;
 
-    // IEssentiaAlgorithm interface
-    virtual std::vector<essentia_timestamp> analyze(callbacks *cb) override;
-};
+void TuningFrequency(SourceBase &input, Pool &pool, const Pool &options, const string &nspace = "");
+void TonalDescriptors(SourceBase &input, Pool &pool, const Pool &options, const string &nspace = "");
+void TuningSystemFeatures(Pool &pool, const string &nspace = "");
+void TonalPoolCleaning(Pool &pool, const string &nspace = "");
 
-} // namespace essentiawrapper
-
-#endif // BEAT_DETECTION_ALGORITHM_H
+#endif // STREAMING_EXTRACTORTONAL_H

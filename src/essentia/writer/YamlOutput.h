@@ -20,53 +20,41 @@
  *
  */
 
-#ifndef AUDIO_LOADER_H
-#define AUDIO_LOADER_H
+#ifndef YAML_OUTPUT_H
+#define YAML_OUTPUT_H
 
-#include <memory>
-
-#include "streaming/algorithms/vectoroutput.h"
-#include "streaming/algorithms/poolstorage.h"
-#include "scheduler/network.h"
 #include "algorithm.h"
-
-#include "essentia_wrapper.h"
+#include "pool.h"
 
 using namespace std;
 using namespace essentia;
 
 namespace essentiawrapper {
 
-// Standard non-streaming algorithm comes after the streaming one as it depends on it
-class AudioLoader : public standard::Algorithm
+class YamlOutput : public standard::Algorithm
 {
 
 protected:
+    standard::Input<Pool> _pool;
+    string _filename;
+    bool _doubleCheck;
+    bool _outputJSON;
+    int _indent;
+    bool _writeVersion;
 
-    shared_ptr<streaming::VectorOutput<essentia::StereoSample>> _audioStorage;
-
-    // no shared pointer necessary, network deletes registered algorithm on its own
-    streaming::Algorithm *_audioLoader = 0;
-    shared_ptr<scheduler::Network> _network;
-
-    standard::Output<vector<StereoSample> > _audio;
-
-    standard::Output<int> _channels;
-    Pool _pool;
-
-    void createInnerNetwork(const callbacks *cb);
+    void outputToStream(ostream *out);
 
 public:
-    AudioLoader(const callbacks *cb);
-    virtual ~AudioLoader() = default;
+
+    YamlOutput();
+    virtual ~YamlOutput() = default;
 
     virtual void declareParameters() override;
     virtual void configure() override;
     virtual void compute() override;
-    virtual void reset() override;
 
 };
 
 } // namespace essentiawrapper
 
-#endif // AUDIO_LOADER_H
+#endif // YAML_OUTPUT_H

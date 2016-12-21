@@ -20,16 +20,15 @@
  *
  */
 
-#ifndef AUDIO_LOADER_H
-#define AUDIO_LOADER_H
+#ifndef STREAM_EQLOUD_LOADER_H
+#define STREAM_EQLOUD_LOADER_H
 
 #include <memory>
 
+#include "streaming/streamingalgorithmcomposite.h"
 #include "streaming/algorithms/vectoroutput.h"
-#include "streaming/algorithms/poolstorage.h"
 #include "scheduler/network.h"
 #include "algorithm.h"
-
 #include "essentia_wrapper.h"
 
 using namespace std;
@@ -37,36 +36,31 @@ using namespace essentia;
 
 namespace essentiawrapper {
 
-// Standard non-streaming algorithm comes after the streaming one as it depends on it
-class AudioLoader : public standard::Algorithm
+class StreamEqloudLoader : public streaming::AlgorithmComposite
 {
-
 protected:
+    shared_ptr<streaming::Algorithm> _monoLoader;
+    shared_ptr<streaming::Algorithm> _trimmer;
+    shared_ptr<streaming::Algorithm> _scale;
+    shared_ptr<streaming::Algorithm> _eqloud;
 
-    shared_ptr<streaming::VectorOutput<essentia::StereoSample>> _audioStorage;
+    streaming::SourceProxy<AudioSample> _audio;
 
-    // no shared pointer necessary, network deletes registered algorithm on its own
-    streaming::Algorithm *_audioLoader = 0;
-    shared_ptr<scheduler::Network> _network;
-
-    standard::Output<vector<StereoSample> > _audio;
-
-    standard::Output<int> _channels;
-    Pool _pool;
-
-    void createInnerNetwork(const callbacks *cb);
+    bool _configured = false;
 
 public:
-    AudioLoader(const callbacks *cb);
-    virtual ~AudioLoader() = default;
+    StreamEqloudLoader(const callbacks *cb);
+    virtual ~StreamEqloudLoader() = default;
+
+    virtual void declareProcessOrder() override
+    {
+        declareProcessStep(streaming::ChainFrom(_monoLoader.get()));
+    }
 
     virtual void declareParameters() override;
     virtual void configure() override;
-    virtual void compute() override;
-    virtual void reset() override;
-
 };
 
 } // namespace essentiawrapper
 
-#endif // AUDIO_LOADER_H
+#endif // STREAM_EQLOUD_LOADER_H

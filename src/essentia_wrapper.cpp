@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cstddef>
 #include "essentia/BeatDetectionAlgorithm.h"
+#include "essentia/AllDetectionAlgorithms.h"
 
 void free_essentia_timestamps(essentia_timestamp *ts)
 {
@@ -21,7 +22,7 @@ essentia_timestamp *essentia_analyze(callbacks *cb, uint32_t *count)
         return nullptr;
     }
 
-    essentiawrapper::BeatDetectionAlgorithm algo;
+    essentiawrapper::AllDetectionAlgorithms algo;
     std::vector<essentia_timestamp> vec = algo.analyze(cb);
     const size_t size = vec.size();
     *count = static_cast<uint32_t>(size);

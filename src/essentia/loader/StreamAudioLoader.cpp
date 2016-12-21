@@ -1,3 +1,25 @@
+/*
+ * Copyright (C) 2006-2016  Music Technology Group - Universitat Pompeu Fabra
+ *
+ * This file is part of Essentia
+ *
+ * Essentia is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation (FSF), either version 3 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the Affero GNU General Public License
+ * version 3 along with this program.  If not, see http://www.gnu.org/licenses/
+ *
+ * Modified by E. Mista, date 12 december 2016
+ *
+ */
+
 #include "StreamAudioLoader.h"
 #include "algorithmfactory.h"
 #include <functional>
@@ -37,7 +59,7 @@ void StreamAudioLoader::configure()
 
 streaming::AlgorithmStatus StreamAudioLoader::process()
 {
-    cout << "-------- process StreamAudioLoader --------" << endl;
+    // cout << "-------- process StreamAudioLoader --------" << endl;
 
     int32_t size = -1;
 
@@ -57,8 +79,6 @@ streaming::AlgorithmStatus StreamAudioLoader::process()
     if (size > 0)
     {
         int nSamples = size;
-
-        cout << "audioloader read " << nSamples << endl;
 
         bool ok = _audio.acquire(nSamples);
         if (!ok)
@@ -130,3 +150,4 @@ void StreamAudioLoader::closeAudio()
 
 
 } // namespace essentiawrapper
+

@@ -20,23 +20,17 @@
  *
  */
 
-#ifndef BEAT_DETECTION_ALGORITHM_H
-#define BEAT_DETECTION_ALGORITHM_H
 
-#include "IEssentiaAlgorithm.h"
+#ifndef STREAMING_EXTRACTOR_POSTPROCESS_H
+#define STREAMING_EXTRACTOR_POSTPROCESS_H
 
-namespace essentiawrapper {
+#include "pool.h"
+#include "types.h"
+#include <string>
 
-class BeatDetectionAlgorithm : public IEssentiaAlgorithm
-{
-public:
-    BeatDetectionAlgorithm();
-    virtual ~BeatDetectionAlgorithm();
+using namespace std;
+using namespace essentia;
 
-    // IEssentiaAlgorithm interface
-    virtual std::vector<essentia_timestamp> analyze(callbacks *cb) override;
-};
+void PostProcess(Pool &pool, const Pool &options, const string &nspace = "");
 
-} // namespace essentiawrapper
-
-#endif // BEAT_DETECTION_ALGORITHM_H
+#endif // STREAMING_EXTRACTOR_POSTPROCESS_H

@@ -20,16 +20,13 @@
  *
  */
 
-#ifndef AUDIO_LOADER_H
-#define AUDIO_LOADER_H
-
-#include <memory>
+#ifndef STREAM_STEREO_TRIMMER_H
+#define STREAM_STEREO_TRIMMER_H
 
 #include "streaming/algorithms/vectoroutput.h"
 #include "streaming/algorithms/poolstorage.h"
 #include "scheduler/network.h"
 #include "algorithm.h"
-
 #include "essentia_wrapper.h"
 
 using namespace std;
@@ -37,36 +34,31 @@ using namespace essentia;
 
 namespace essentiawrapper {
 
-// Standard non-streaming algorithm comes after the streaming one as it depends on it
-class AudioLoader : public standard::Algorithm
+class StreamStereoTrimmer : public streaming::Algorithm
 {
-
 protected:
 
-    shared_ptr<streaming::VectorOutput<essentia::StereoSample>> _audioStorage;
+    streaming::Sink<StereoSample> _input;
+    streaming::Source<StereoSample> _output;
 
-    // no shared pointer necessary, network deletes registered algorithm on its own
-    streaming::Algorithm *_audioLoader = 0;
-    shared_ptr<scheduler::Network> _network;
+    int _preferredSize;
+    long long _startIndex;
+    long long _endIndex;
+    long long _consumed;
 
-    standard::Output<vector<StereoSample> > _audio;
-
-    standard::Output<int> _channels;
-    Pool _pool;
-
-    void createInnerNetwork(const callbacks *cb);
+    static const int defaultPreferredSize = 4096;
 
 public:
-    AudioLoader(const callbacks *cb);
-    virtual ~AudioLoader() = default;
+    StreamStereoTrimmer();
+    virtual ~StreamStereoTrimmer() = default;
 
     virtual void declareParameters() override;
     virtual void configure() override;
-    virtual void compute() override;
+    virtual streaming::AlgorithmStatus process() override;
     virtual void reset() override;
 
 };
 
 } // namespace essentiawrapper
 
-#endif // AUDIO_LOADER_H
+#endif // STREAM_STEREO_TRIMMER_H

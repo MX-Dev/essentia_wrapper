@@ -20,23 +20,18 @@
  *
  */
 
-#ifndef BEAT_DETECTION_ALGORITHM_H
-#define BEAT_DETECTION_ALGORITHM_H
 
-#include "IEssentiaAlgorithm.h"
+#ifndef STREAMING_EXTRACTORSFX_H
+#define STREAMING_EXTRACTORSFX_H
 
-namespace essentiawrapper {
+#include "streaming/sourcebase.h"
+#include "pool.h"
 
-class BeatDetectionAlgorithm : public IEssentiaAlgorithm
-{
-public:
-    BeatDetectionAlgorithm();
-    virtual ~BeatDetectionAlgorithm();
+using namespace std;
+using namespace essentia;
+using namespace essentia::streaming;
 
-    // IEssentiaAlgorithm interface
-    virtual std::vector<essentia_timestamp> analyze(callbacks *cb) override;
-};
+void SFX(SourceBase &input, Pool &pool, const string &nspace = "");
+void SFXPitch(Pool &pool, const string &nspace = "");
 
-} // namespace essentiawrapper
-
-#endif // BEAT_DETECTION_ALGORITHM_H
+#endif // STREAMING_EXTRACTORSFX_H

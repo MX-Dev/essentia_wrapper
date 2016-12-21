@@ -20,23 +20,27 @@
  *
  */
 
-#ifndef BEAT_DETECTION_ALGORITHM_H
-#define BEAT_DETECTION_ALGORITHM_H
+#ifndef STREAMING_EXTRACTOR_METADATA_H
+#define STREAMING_EXTRACTOR_METADATA_H
 
-#include "IEssentiaAlgorithm.h"
+#include <algorithmfactory.h>
+#include <pool.h>
+#include <types.h>
+#include <string>
+#include <memory>
 
-namespace essentiawrapper {
+using namespace std;
+using namespace essentia;
+using namespace essentia::streaming;
+using namespace essentia::scheduler;
 
-class BeatDetectionAlgorithm : public IEssentiaAlgorithm
-{
-public:
-    BeatDetectionAlgorithm();
-    virtual ~BeatDetectionAlgorithm();
+void setDefaultOptions(Pool &pool);
+void mergeOptionsAndResults(Pool &results, const Pool &options);
+void pcmMetadata(AlgorithmFactory &factory, Pool &pool);
+void readMetadata(Pool &pool);
 
-    // IEssentiaAlgorithm interface
-    virtual std::vector<essentia_timestamp> analyze(callbacks *cb) override;
-};
+essentia::Pool computeAggregation(Pool &pool, const Pool &options, int segments = 0);
+void cleanUp(Pool &pool, const Pool &options);
+void outputToFile(Pool &pool, const string &outputFilename, const Pool &options);
 
-} // namespace essentiawrapper
-
-#endif // BEAT_DETECTION_ALGORITHM_H
+#endif // STREAMING_EXTRACTOR_METADATA_H

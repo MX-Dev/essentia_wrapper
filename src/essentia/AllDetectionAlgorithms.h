@@ -20,44 +20,26 @@
  *
  */
 
-#ifndef STREAM_MONO_LOADER_H
-#define STREAM_MONO_LOADER_H
+#ifndef ALL_DETECTION_ALGORITHMS_H
+#define ALL_DETECTION_ALGORITHMS_H
 
-#include <memory>
-
-#include "streaming/streamingalgorithmcomposite.h"
-#include "streaming/algorithms/vectoroutput.h"
-#include "scheduler/network.h"
-#include "algorithm.h"
-#include "essentia_wrapper.h"
-
-using namespace essentia;
+#include "IEssentiaAlgorithm.h"
 
 namespace essentiawrapper {
 
-class StreamMonoLoader : public streaming::AlgorithmComposite
+class AllDetectionAlgorithms : public IEssentiaAlgorithm
 {
-protected:
-    std::shared_ptr<streaming::Algorithm> _audioLoader;
-    std::shared_ptr<streaming::Algorithm> _mixer;
-
-    streaming::SourceProxy<AudioSample> _audio;
-
-    bool _configured = false;
-
 public:
-    StreamMonoLoader(const callbacks *cb);
-    virtual ~StreamMonoLoader() = default;
+    AllDetectionAlgorithms();
+    virtual ~AllDetectionAlgorithms();
 
-    virtual void declareProcessOrder() override
-    {
-        declareProcessStep(streaming::ChainFrom(_audioLoader.get()));
-    }
+    // IEssentiaAlgorithm interface
+    virtual std::vector<essentia_timestamp> analyze(callbacks *cb) override;
 
-    virtual void declareParameters() override;
-    virtual void configure() override;
+private:
+
 };
 
 } // namespace essentiawrapper
 
-#endif // STREAM_MONO_LOADER_H
+#endif // ALL_DETECTION_ALGORITHMS_H
