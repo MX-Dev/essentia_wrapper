@@ -144,11 +144,13 @@ void compute(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Poo
     if (eqloud) eqloudPool.set("metadata.audio_properties.equal_loudness", true);
 
     // what to compute:
-    bool lowlevel = options.value<Real>("lowlevel.compute")         ||
-                    options.value<Real>("average_loudness.compute") ||
-                    options.value<Real>("tonal.compute")            ||
-                    options.value<Real>("sfx.compute")              ||
-                    options.value<Real>("rhythm.beats.compute")     ||
+    bool lowlevel = options.value<Real>("lowlevel.compute")             ||
+                    options.value<Real>("average_loudness.compute")     ||
+                    options.value<Real>("tonal.compute")                ||
+                    options.value<Real>("sfx.compute")                  ||
+                    options.value<Real>("rhythm.beats.compute")         ||
+                    options.value<Real>("rhythm.onset.compute")         ||
+                    options.value<Real>("rhythm.danceability.compute")  ||
                     options.value<Real>("segmentation.compute") != 0;
     bool midlevel = options.value<Real>("tonal.compute") ||
                     options.value<Real>("rhythm.beats.loudness.compute");
@@ -184,7 +186,9 @@ void compute(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Poo
                        options.value<Real>("segmentation.desc.average_loudness.compute") ||
                        options.value<Real>("segmentation.desc.tonal.compute")            ||
                        options.value<Real>("segmentation.desc.sfx.compute")              ||
-                       options.value<Real>("segmentation.desc.rhythm.beats.compute");
+                       options.value<Real>("segmentation.desc.rhythm.beats.compute")     ||
+                       options.value<Real>("segmentation.desc.rhythm.onset.compute")     ||
+                       options.value<Real>("segmentation.desc.rhythm.danceability.compute");
     bool segMidlevel = options.value<Real>("segmentation.desc.tonal.compute") ||
                        options.value<Real>("segmentation.desc.rhythm.beats.loudness.compute");
     bool segPanning  = options.value<Real>("segmentation.desc.panning.compute") != 0;
