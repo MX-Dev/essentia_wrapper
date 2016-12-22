@@ -33,7 +33,7 @@ bool setPoolValue(const char* name, T value)
 template<class T>
 bool addPoolValue(const char* name, T value)
 {
-    auto pool =  configPool();
+    auto& pool =  configPool();
     try
     {
         pool.add(name, value);
