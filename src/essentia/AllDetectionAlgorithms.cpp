@@ -114,20 +114,22 @@ vector<essentia_timestamp> AllDetectionAlgorithms::analyze(callbacks *cb)
 
     compute(cb, neqloudPool, eqloudPool, mergedOptions);
 
-    // TODO convert from smthg
-
     cout << "-------- finished processing --------" << endl;
 
-    // return eqloud results
-    vector<Real> ticks = eqloudPool.value<vector<Real>>("rhythm.beats.position");
-
     vector<essentia_timestamp> et_vec;
-    for (size_t i = 0; i < ticks.size(); ++i)
+
+    if (eqloudPool.contains<vector<Real> >("rhythm.beats.position"))
     {
-        essentia_timestamp ts;
-        ts.ts = ticks[i];
-        ts.type = Beat;
-        et_vec.push_back(ts);
+        // return eqloud results
+        vector<Real> ticks = eqloudPool.value<vector<Real>>("rhythm.beats.position");
+
+        for (size_t i = 0; i < ticks.size(); ++i)
+        {
+            essentia_timestamp ts;
+            ts.ts = ticks[i];
+            ts.type = Beat;
+            et_vec.push_back(ts);
+        }
     }
 
     return et_vec;
@@ -494,6 +496,7 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
         // Level Descriptor
         // expects the audio source to already be equal-loudness filtered, so it
         // must use the eqloudSouce instead of neqloudSource
+        // results needed for average loudness
         bool computeAverageLoudness = nspace.empty() ?
                                       options.value<Real>("average_loudness.compute") != 0 :
                                       options.value<Real>("segmentation.desc.average_loudness.compute") != 0;
@@ -588,6 +591,7 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
 
         // Level Descriptor
         // expects the audio source to already be equal-loudness filtered
+        // results needed for average_loudness
         bool computeAverageLoudness = nspace.empty() ?
                                       options.value<Real>("average_loudness.compute") != 0 :
                                       options.value<Real>("segmentation.desc.average_loudness.compute") != 0;

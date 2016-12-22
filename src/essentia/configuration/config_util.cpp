@@ -37,8 +37,8 @@ void setDefaultOptions(Pool &pool)
     pool.set("endTime", 2000.0);                            // (0,end]                          | analyse to (seconds)
     pool.set("analysisSampleRate", 44100.0);                // (0,inf)                          | the sampling rate of the audio signal [Hz]
 
-    pool.set("equalOutputPath", "/tmp/equal_json.txt");     // string (default="")              | equal result output to file
-    pool.set("nequalOutputPath", "/tmp/nequal_json.txt");   // string (default="")              | nequal result output to file
+    pool.set("equalOutputPath", "");                        // string                           | equal result output to file
+    pool.set("nequalOutputPath", "");                       // string                           | nequal result output to file
     pool.set("outputFormat", "json");                       // {yaml,json}                      | result output format
 
     // svm
@@ -82,7 +82,7 @@ void setDefaultOptions(Pool &pool)
     pool.set("average_loudness.silentFrames", "noise");     // {drop,keep,noise}                | whether to [keep/drop/add noise to] silent frames
 
     // rhythm
-    pool.set("rhythm.beats.compute", true);                 // {false,true}                     | compute beats
+    pool.set("rhythm.beats.compute", false);                 // {false,true}                     | compute beats
     pool.set("rhythm.beats.method", "degara");              // {multifeature,degara}            | the method used for beat tracking
     pool.set("rhythm.beats.minTempo", 40);                  // [40,180]                         | the fastest tempo to detect [bpm]
     pool.set("rhythm.beats.maxTempo", 208);                 // [60,250]                         | the slowest tempo to detect [bpm]
@@ -352,38 +352,23 @@ void cleanUp(Pool &pool, const Pool &options)
 
     // TODO code below currently not working
 
-//    if (options.value<Real>("lowlevel.compute") == 0)
-//    {
-//        if (options.value<Real>("average_loudness.compute") != 0)
-//        {
-//            Real al = options.value<Real>("lowlevel.average_loudness");
-//            pool.removeNamespace("lowlevel");
-//            pool.set("lowlevel.average_loudness", al);
-//        }
-//        else pool.removeNamespace("lowlevel");
-//    }
+    if (options.value<Real>("lowlevel.compute") == 0)
+    {
+        pool.removeNamespace("lowlevel");
+    }
 
-//    if (options.value<Real>("segmentation.desc.lowlevel.compute") == 0)
-//    {
-//        ostringstream ns;
-//        vector<Real> segments = pool.value<vector<Real> >("segmentation.timestamps");
-//        for (int i = 0; i < int(segments.size() - 1); ++i)
-//        {
-//            ns << "";
-//            if (options.value<Real>("segmentation.desc.average_loudness.compute") != 0)
-//            {
-//                ns << "segments.segment_" << i << ".desc.lowlevel.average_loudness";
-//                Real al = options.value<Real>(ns.str());
-//                pool.removeNamespace("lowlevel");
-//                pool.set(ns.str(), al);
-//            }
-//            else
-//            {
-//                ns << "segments.segment_" << i << ".desc.lowlevel";
-//                pool.removeNamespace(ns.str());
-//            }
-//        }
-//    }
+    if (options.value<Real>("segmentation.desc.lowlevel.compute") == 0)
+    {
+        ostringstream ns;
+        vector<Real> segments = pool.value<vector<Real> >("segmentation.timestamps");
+        for (int i = 0; i < int(segments.size() - 1); ++i)
+        {
+            ns.str("");
+            ns.clear();
+            ns << "segments.segment_" << i << ".desc.lowlevel";
+            pool.removeNamespace(ns.str());
+        }
+    }
 
     mergeOptionsAndResults(pool, options);
 
@@ -391,7 +376,7 @@ void cleanUp(Pool &pool, const Pool &options)
 
 void outputToFile(Pool &pool, const string &outputFilename, const Pool &options)
 {
-    if (outputFilename.compare("") != 0)
+    if (!outputFilename.empty())
     {
         cout << "Writing results to file " << outputFilename << endl;
         // some descriptors depend on lowlevel descriptors but it might be that the

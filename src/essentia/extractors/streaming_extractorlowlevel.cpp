@@ -355,6 +355,9 @@ void LevelAverage(Pool &pool, const string &nspace)
     string llspace = "lowlevel.";
     if (!nspace.empty()) llspace = nspace + ".lowlevel.";
 
+    string alspace = "";
+    if (!nspace.empty()) alspace = nspace + ".";
+
     vector<Real> levelArray = pool.value<vector<Real> >(llspace + "loudness");
 
     // Maximum dynamic
@@ -387,5 +390,5 @@ void LevelAverage(Pool &pool, const string &nspace)
     Real x1 = -5.0;
     Real x2 = -2.0;
     Real levelAverageSqueezed = squeezeRange(levelAverage, x1, x2);
-    pool.set(llspace + "average_loudness", levelAverageSqueezed);
+    pool.set(alspace + "average_loudness", levelAverageSqueezed);
 }
