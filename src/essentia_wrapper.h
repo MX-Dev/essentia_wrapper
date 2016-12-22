@@ -102,6 +102,63 @@ struct essentia_timestamp
 };
 
 /**
+ * Adds @e value to the configuration under @e name
+ * @param name a descriptor name that identifies the collection of data to add
+ *             @e value to
+ * @param value the value to add to the collection of data that @e name points
+ *              to
+ * @param validityCheck indicates whether @e value should be checked for NaN or Inf values. If
+ *                      true, an exception is thrown if @e value is (or contains) a NaN or Inf.
+ * @remark If @e name already exists in the configuration and points to data with the
+ *         same data type as @e value, then @e value is concatenated to the
+ *         vector stored therein. If, however, @e name already exists in the
+ *         configuration and points to a @b different data type than @e value, then
+ *         this can cause unwanted behavior for the rest of the member
+ *         functions of configuration. To avoid this, do not add data into the configuration
+ *         whose descriptor name already exists in the configuration and points to a
+ *         @b different data type than @e value.
+ *
+ * @remark If @e name has child descriptor names, this function will return false.
+ *         For example, if "foo.bar" exists in the configuration, this
+ *         function can no longer be called with "foo" as its @e name
+ *         parameter, because "bar" is a child descriptor name of "foo".
+ */
+ESSENTIA_WRAPPER_API bool essentia_add_config_value_f(const char* name, float value);
+
+/** @copydoc essentia_add_config_value_f(const char* name, float value) */
+ESSENTIA_WRAPPER_API bool essentia_add_config_value_s(const char* name, const char* value);
+
+/** @copydoc essentia_add_config_value_f(const char* name, float value) */
+ESSENTIA_WRAPPER_API bool essentia_add_config_value_b(const char* name, bool value);
+
+/**
+ * @brief Sets the value of a descriptor name.
+ *
+ * @details This function is different than the add functions because set does not
+ * append data to the existing data under a given descriptor name, it sets it.
+ * Thus there can only be one datum associated with a descriptor name
+ * introduced to the configuration via the set function. This function is useful when
+ * there is only one value associated with a given descriptor name.
+ *
+ * @param name is the descriptor name of the datum to set
+ * @param value is the datum to associate with @e name
+ ' @return True if the value was set correctly, otherwise false.
+ *
+ * @remark The set function cannot be used to override the data of a
+ *         descriptor name that was introduced to the Configuration via the add
+ *         function. False will be returned if the given
+ *         descriptor name already exists in the Configuration and was put there via a
+ *         call to an add function.
+ */
+ESSENTIA_WRAPPER_API bool essentia_set_config_value_f(const char* name, float value);
+
+/** @copydoc essentia_set_config_value_f(const char* name, float value) */
+ESSENTIA_WRAPPER_API bool essentia_set_config_value_s(const char* name, const char* value);
+
+/** @copydoc essentia_set_config_value_f(const char* name, float value) */
+ESSENTIA_WRAPPER_API bool essentia_set_config_value_b(const char* name, bool value);
+
+/**
  * @brief essentia_analyze
  * @param cb The filled callback struct
  * @param count The count of the returned timestamps.
