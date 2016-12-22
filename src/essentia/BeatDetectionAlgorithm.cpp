@@ -30,7 +30,7 @@ BeatDetectionAlgorithm::~BeatDetectionAlgorithm()
  * @param callback for progress, can be a nullptr
  * @return beats
  */
-std::vector<essentia_timestamp> BeatDetectionAlgorithm::analyze(callbacks *cb)
+std::vector<essentia_timestamp> BeatDetectionAlgorithm::analyze(callbacks *cb, const Pool &config)
 {
     Pool pool;
 

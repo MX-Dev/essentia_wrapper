@@ -34,7 +34,7 @@ public:
     virtual ~BeatDetectionAlgorithm();
 
     // IEssentiaAlgorithm interface
-    virtual std::vector<essentia_timestamp> analyze(callbacks *cb) override;
+    virtual std::vector<essentia_timestamp> analyze(callbacks *cb, const essentia::Pool& config) override;
 };
 
 } // namespace essentiawrapper

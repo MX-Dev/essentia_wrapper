@@ -391,7 +391,7 @@ void cleanUp(Pool &pool, const Pool &options)
 
 void outputToFile(Pool &pool, const string &outputFilename, const Pool &options)
 {
-    if (outputFilename.compare("") != 0)
+    if (!outputFilename.empty())
     {
         cout << "Writing results to file " << outputFilename << endl;
         // some descriptors depend on lowlevel descriptors but it might be that the

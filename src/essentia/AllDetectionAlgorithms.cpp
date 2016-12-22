@@ -80,10 +80,9 @@ AllDetectionAlgorithms::~AllDetectionAlgorithms()
  * @param callback for progress, can be a nullptr
  * @return
  */
-vector<essentia_timestamp> AllDetectionAlgorithms::analyze(callbacks *cb)
+vector<essentia_timestamp> AllDetectionAlgorithms::analyze(callbacks *cb, const Pool &config)
 {
-
-    Pool tmpOptions;
+    Pool tmpOptions = config;
     Pool mergedOptions;
 
     setDefaultOptions(mergedOptions);
