@@ -357,7 +357,8 @@ void cleanUp(Pool &pool, const Pool &options)
         pool.removeNamespace("lowlevel");
     }
 
-    if (options.value<Real>("segmentation.desc.lowlevel.compute") == 0)
+    if (options.value<Real>("segmentation.compute") != 0 &&
+        options.value<Real>("segmentation.desc.lowlevel.compute") == 0)
     {
         ostringstream ns;
         vector<Real> segments = pool.value<vector<Real> >("segmentation.timestamps");
