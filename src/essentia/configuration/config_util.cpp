@@ -37,8 +37,8 @@ void setDefaultOptions(Pool &pool)
     pool.set("endTime", 2000.0);                            // (0,end]                          | analyse to (seconds)
     pool.set("analysisSampleRate", 44100.0);                // (0,inf)                          | the sampling rate of the audio signal [Hz]
 
-    pool.set("equalOutputPath", "/tmp/equal_json.txt");     // string (default="")              | equal result output to file
-    pool.set("nequalOutputPath", "/tmp/nequal_json.txt");   // string (default="")              | nequal result output to file
+    pool.set("equalOutputPath", "");                        // string (default="")              | equal result output to file
+    pool.set("nequalOutputPath", "");                       // string (default="")              | nequal result output to file
     pool.set("outputFormat", "json");                       // {yaml,json}                      | result output format
 
     // svm
