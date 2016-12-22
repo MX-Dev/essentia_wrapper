@@ -36,7 +36,11 @@ void PostProcess(Pool &pool, const Pool &options, const string &nspace)
 {
     cout << "PostProcess missing descriptors" << endl;
 
-    if (options.value<Real>("rhythm.beats.compute") != 0)
+    bool computeBeats = nspace.empty() ?
+                         options.value<Real>("rhythm.beats.compute") != 0 :
+                         options.value<Real>("segmentation.desc.rhythm.beats.compute") != 0;
+
+    if (computeBeats)
     {
         string rhythmspace = "rhythm.";
         if (!nspace.empty()) rhythmspace = nspace + ".rhythm.";
@@ -47,10 +51,10 @@ void PostProcess(Pool &pool, const Pool &options, const string &nspace)
             pool.set(rhythmspace + "perceptual_tempo", "unknown");
         if (options.value<Real>("rhythm.beats.loudness.compute") != 0)
         {
-            if (find(descNames.begin(), descNames.end(), rhythmspace + "beats_loudness") == descNames.end())
-                pool.add(rhythmspace + "beats_loudness", Real(0.0));
-            if (find(descNames.begin(), descNames.end(), rhythmspace + "beats_loudness_band_ratio") == descNames.end())
-                pool.add(rhythmspace + "beats_loudness_band_Ratio", vector<Real>());
+            if (find(descNames.begin(), descNames.end(), rhythmspace + "beats.loudness") == descNames.end())
+                pool.add(rhythmspace + "beats.loudness", Real(0.0));
+            if (find(descNames.begin(), descNames.end(), rhythmspace + "beats.loudness_band_ratio") == descNames.end())
+                pool.add(rhythmspace + "beats.loudness_band_Ratio", vector<Real>());
         }
     }
 
