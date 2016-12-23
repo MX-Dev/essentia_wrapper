@@ -69,12 +69,22 @@ essentia_timestamp *essentia_analyze(callbacks *cb, uint32_t *count)
     //  Then it would be better to use the BeatDetectionAlgorithm.
 
     essentiawrapper::AllDetectionAlgorithms algo;
-    std::vector<essentia_timestamp> vec = algo.analyze(cb, configPool());
+    // TODO split analyse and get result functions
+    std::vector<float> vec = algo.analyze(cb, configPool());
     const size_t size = vec.size();
     *count = static_cast<uint32_t>(size);
 
+    std::vector<essentia_timestamp> et_vec;
+    for (size_t i = 0; i < size; ++i)
+    {
+        essentia_timestamp ts;
+        ts.ts = vec[i];
+        ts.type = Beat;
+        et_vec.push_back(ts);
+    }
+
     essentia_timestamp* timestamps = new essentia_timestamp[size];
-    std::copy(std::begin(vec), std::end(vec), timestamps);
+    std::copy(std::begin(et_vec), std::end(et_vec), timestamps);
 
     return timestamps;
 }

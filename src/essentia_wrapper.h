@@ -89,6 +89,7 @@ struct callbacks
 enum essentia_ts_type
 {
     Beat,
+    Segment,
     FadeIn,
     FadeOut,
     OnSet

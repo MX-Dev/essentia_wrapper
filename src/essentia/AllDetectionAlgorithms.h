@@ -34,7 +34,7 @@ public:
     virtual ~AllDetectionAlgorithms();
 
     // IEssentiaAlgorithm interface
-    virtual std::vector<essentia_timestamp> analyze(callbacks *cb, const essentia::Pool& config) override;
+    virtual std::vector<float> analyze(callbacks *cb, const essentia::Pool& config) override;
 
 private:
 

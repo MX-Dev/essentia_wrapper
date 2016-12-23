@@ -23,6 +23,8 @@
 #ifndef STREAMING_EXTRACTOR_METADATA_H
 #define STREAMING_EXTRACTOR_METADATA_H
 
+#include "essentia_wrapper.h"
+
 #include <algorithmfactory.h>
 #include <pool.h>
 #include <types.h>
@@ -42,5 +44,7 @@ void readMetadata(Pool &pool);
 essentia::Pool computeAggregation(Pool &pool, const Pool &options, int segments = 0);
 void cleanUp(Pool &pool, const Pool &options);
 void outputToFile(Pool &pool, const string &outputFilename, const Pool &options);
+
+vector<float> getResult(Pool &pool, string name);
 
 #endif // STREAMING_EXTRACTOR_METADATA_H

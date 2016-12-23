@@ -12,7 +12,7 @@ class IEssentiaAlgorithm
 {
 public:
     virtual ~IEssentiaAlgorithm() = default;
-    virtual std::vector<essentia_timestamp> analyze(callbacks* cb, const essentia::Pool& config) = 0;
+    virtual std::vector<float> analyze(callbacks* cb, const essentia::Pool& config) = 0;
 };
 
 typedef std::shared_ptr<IEssentiaAlgorithm> IEssentiaAlgorithmPtr_t;

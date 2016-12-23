@@ -402,3 +402,24 @@ void outputToFile(Pool &pool, const string &outputFilename, const Pool &options)
         output->compute();
     }
 }
+
+vector<float> getResult(Pool &pool, string name)
+{
+
+    vector<float> et_vec;
+
+    if (pool.contains<vector<Real> >(name))
+    {
+        vector<Real> val = pool.value<vector<Real>>(name);
+
+        for (size_t i = 0; i < val.size(); ++i)
+        {
+            et_vec.push_back(val[i]);
+        }
+    } else if (pool.contains<Real>(name))
+    {
+        Real val = pool.value<Real>(name);
+        et_vec.push_back(val);
+    }
+    return et_vec;
+}

@@ -53,7 +53,6 @@ using namespace essentia::scheduler;
 
 namespace essentiawrapper {
 
-
 void compute(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Pool &options);
 void computeSegments(Pool &neqloudPool, Pool &eqloudPool, const Pool &options);
 void computeReplayGain(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Pool &options);
@@ -80,7 +79,7 @@ AllDetectionAlgorithms::~AllDetectionAlgorithms()
  * @param callback for progress, can be a nullptr
  * @return
  */
-vector<essentia_timestamp> AllDetectionAlgorithms::analyze(callbacks *cb, const Pool &config)
+vector<float> AllDetectionAlgorithms::analyze(callbacks *cb, const Pool &config)
 {
     Pool tmpOptions = config;
     Pool mergedOptions;
@@ -115,23 +114,7 @@ vector<essentia_timestamp> AllDetectionAlgorithms::analyze(callbacks *cb, const 
 
     cout << "-------- finished processing --------" << endl;
 
-    vector<essentia_timestamp> et_vec;
-
-    if (eqloudPool.contains<vector<Real> >("rhythm.beats.position"))
-    {
-        // return eqloud results
-        vector<Real> ticks = eqloudPool.value<vector<Real>>("rhythm.beats.position");
-
-        for (size_t i = 0; i < ticks.size(); ++i)
-        {
-            essentia_timestamp ts;
-            ts.ts = ticks[i];
-            ts.type = Beat;
-            et_vec.push_back(ts);
-        }
-    }
-
-    return et_vec;
+    return getResult(eqloudPool, "rhythm.beats.position");
 }
 
 void compute(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Pool &options)
