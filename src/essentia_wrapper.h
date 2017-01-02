@@ -88,16 +88,20 @@ struct callbacks
  */
 enum essentia_ts_type
 {
-    Beat,
-    Segment,
-    FadeIn,
-    FadeOut,
-    OnSet
+    Beats,
+    BPM,
+    Segments,
+    FadeIns,
+    FadeOuts,
+    Onsets,
+    AverageLoudness,
+    Danceability
 };
 
 struct essentia_timestamp
 {
-    float ts;
+    float* ts;
+    uint32_t tsCount;
     essentia_ts_type type;
     const char* algo_name;
 };

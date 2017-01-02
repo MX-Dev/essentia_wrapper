@@ -79,7 +79,7 @@ AllDetectionAlgorithms::~AllDetectionAlgorithms()
  * @param callback for progress, can be a nullptr
  * @return
  */
-vector<float> AllDetectionAlgorithms::analyze(callbacks *cb, const Pool &config)
+void AllDetectionAlgorithms::analyze(callbacks *cb, const Pool &config)
 {
     Pool tmpOptions = config;
     Pool mergedOptions;
@@ -88,9 +88,18 @@ vector<float> AllDetectionAlgorithms::analyze(callbacks *cb, const Pool &config)
 
     mergedOptions.merge(tmpOptions, "replace");
 
-    // pool for storing results
-    Pool neqloudPool; // non equal loudness pool
-    Pool eqloudPool; // equal loudness pool
+    // beat detection needed if beatsloudness or bpmhistogram detection is requested
+    if (mergedOptions.value<Real>("rhythm.beats.loudness.compute") != 0 ||
+            mergedOptions.value<Real>("rhythm.bpmhistogram.compute") != 0)
+    {
+        mergedOptions.set("rhythm.beats.compute", true);
+    }
+
+    if (mergedOptions.value<Real>("segmentation.desc.rhythm.beats.loudness.compute") != 0 ||
+            mergedOptions.value<Real>("segmentation.desc.rhythm.bpmhistogram.compute") != 0)
+    {
+        mergedOptions.set("segmentation.desc.rhythm.beats.compute", true);
+    }
 
     bool neqloud = mergedOptions.value<Real>("nequalLoudness") != 0;
     bool eqloud =  mergedOptions.value<Real>("equalLoudness")  != 0;
@@ -101,20 +110,24 @@ vector<float> AllDetectionAlgorithms::analyze(callbacks *cb, const Pool &config)
            equal loudness is set to false. At least one must set to true");
     }
 
-    // beat detection needed if beatsloudness or bpmhistogram detection is requested
-    if (mergedOptions.value<Real>("rhythm.beats.loudness.compute") != 0 ||
-            mergedOptions.value<Real>("rhythm.bpmhistogram.compute") != 0)
-    {
-        mergedOptions.set("rhythm.beats.compute", true);
-    }
-
     cout << "-------- start processing --------" << endl;
 
-    compute(cb, neqloudPool, eqloudPool, mergedOptions);
+    compute(cb, _neqloudPool, _eqloudPool, mergedOptions);
 
     cout << "-------- finished processing --------" << endl;
 
-    return getResult(eqloudPool, "rhythm.beats.position");
+}
+
+std::vector<float> AllDetectionAlgorithms::get(std::string configName, bool eqLoudPool)
+{
+    if (eqLoudPool)
+    {
+        return getResult(_eqloudPool, configName);
+    }
+    else
+    {
+        return getResult(_neqloudPool, configName);
+    }
 }
 
 void compute(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Pool &options)
@@ -127,6 +140,7 @@ void compute(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Poo
     if (eqloud) eqloudPool.set("metadata.audio_properties.equal_loudness", true);
 
     // what to compute:
+
     bool lowlevel = options.value<Real>("lowlevel.compute")             ||
                     options.value<Real>("average_loudness.compute")     ||
                     options.value<Real>("tonal.compute")                ||
@@ -444,6 +458,10 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
     bool neqloud = options.value<Real>("nequalLoudness") != 0;
     bool eqloud  = options.value<Real>("equalLoudness")  != 0;
 
+    bool doLowLevelSpectral = options.value<Real>("lowlevel.compute") != 0||
+                              options.value<Real>("segmentation.desc.lowlevel.compute") != 0 ||
+                              options.value<Real>("segmentation.compute") != 0;
+
     if (eqloud)
     {
         replayGain = eqloudPool.value<Real>("metadata.audio_properties.replay_gain");
@@ -472,12 +490,15 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
 
     if (neqloud)
     {
-        LowLevelSpectral(neqloudSource, neqloudPool, options, nspace);
 
-        // Low-Level Spectral Equal Loudness Descriptors
-        // expects the audio source to already be equal-loudness filtered, so it
-        // must use the eqloudSouce instead of neqloudSource
-        LowLevelSpectralEqLoud(eqloudSource, neqloudPool, options, nspace);
+        if(doLowLevelSpectral) {
+            LowLevelSpectral(neqloudSource, neqloudPool, options, nspace);
+
+            // Low-Level Spectral Equal Loudness Descriptors
+            // expects the audio source to already be equal-loudness filtered, so it
+            // must use the eqloudSouce instead of neqloudSource
+            LowLevelSpectralEqLoud(eqloudSource, neqloudPool, options, nspace);
+        }
 
         // Level Descriptor
         // expects the audio source to already be equal-loudness filtered, so it
@@ -568,12 +589,14 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
     if (eqloud)
     {
 
-        // Low-Level Spectral Descriptors
-        LowLevelSpectral(eqloudSource, eqloudPool, options, nspace);
+        if(doLowLevelSpectral) {
+            // Low-Level Spectral Descriptors
+            LowLevelSpectral(eqloudSource, eqloudPool, options, nspace);
 
-        // Low-Level Spectral Equal Loudness Descriptors
-        // expects the audio source to already be equal-loudness filtered
-        LowLevelSpectralEqLoud(eqloudSource, eqloudPool, options, nspace);
+            // Low-Level Spectral Equal Loudness Descriptors
+            // expects the audio source to already be equal-loudness filtered
+            LowLevelSpectralEqLoud(eqloudSource, eqloudPool, options, nspace);
+        }
 
         // Level Descriptor
         // expects the audio source to already be equal-loudness filtered

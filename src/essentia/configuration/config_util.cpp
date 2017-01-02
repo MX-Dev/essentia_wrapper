@@ -350,15 +350,13 @@ void cleanUp(Pool &pool, const Pool &options)
     // should not contain lowlevel features. The rest of namespaces should
     // only be computed if they were set explicitly in the config file
 
-    // TODO code below currently not working
-
     if (options.value<Real>("lowlevel.compute") == 0)
     {
         pool.removeNamespace("lowlevel");
     }
 
     if (options.value<Real>("segmentation.compute") != 0 &&
-        options.value<Real>("segmentation.desc.lowlevel.compute") == 0)
+            options.value<Real>("segmentation.desc.lowlevel.compute") == 0)
     {
         ostringstream ns;
         vector<Real> segments = pool.value<vector<Real> >("segmentation.timestamps");
@@ -406,20 +404,32 @@ void outputToFile(Pool &pool, const string &outputFilename, const Pool &options)
 vector<float> getResult(Pool &pool, string name)
 {
 
-    vector<float> et_vec;
+    vector<float> ts_vec;
 
-    if (pool.contains<vector<Real> >(name))
+    if(pool.contains<vector<vector<Real>>>(name)) {
+        vector<vector<Real>> val = pool.value<vector<vector<Real>>>(name);
+        for (size_t i = 0; i < val.size(); ++i)
+        {
+            vector<Real> subVal = val[i];
+            for (size_t j = 0; j < subVal.size(); ++j)
+            {
+                ts_vec.push_back(subVal[j]);
+            }
+        }
+    }
+    else if (pool.contains<vector<Real>>(name))
     {
         vector<Real> val = pool.value<vector<Real>>(name);
 
         for (size_t i = 0; i < val.size(); ++i)
         {
-            et_vec.push_back(val[i]);
+            ts_vec.push_back(val[i]);
         }
-    } else if (pool.contains<Real>(name))
+    }
+    else if (pool.contains<Real>(name))
     {
         Real val = pool.value<Real>(name);
-        et_vec.push_back(val);
+        ts_vec.push_back(val);
     }
-    return et_vec;
+    return ts_vec;
 }

@@ -34,9 +34,14 @@ public:
     virtual ~AllDetectionAlgorithms();
 
     // IEssentiaAlgorithm interface
-    virtual std::vector<float> analyze(callbacks *cb, const essentia::Pool& config) override;
+    virtual void analyze(callbacks *cb, const essentia::Pool& config) override;
+    virtual std::vector<float> get(std::string configName, bool eqLoudPool) override;
 
 private:
+
+    // pool for storing results
+    essentia::Pool _neqloudPool; // non equal loudness pool
+    essentia::Pool _eqloudPool; // equal loudness pool
 
 };
 
