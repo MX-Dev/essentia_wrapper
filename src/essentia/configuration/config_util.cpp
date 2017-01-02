@@ -41,6 +41,8 @@ void setDefaultOptions(Pool &pool)
     pool.set("nequalOutputPath", "");                       // string                           | nequal result output to file
     pool.set("outputFormat", "json");                       // {yaml,json}                      | result output format
 
+    pool.set("skipReplayGain", false);                      // {false,true}                     | if true use standard values instead, saves up to two seconds, maybe worse results
+
     // svm
     pool.set("svm.compute", false);                         // not supported yet (gaia)
 
@@ -82,7 +84,7 @@ void setDefaultOptions(Pool &pool)
     pool.set("average_loudness.silentFrames", "noise");     // {drop,keep,noise}                | whether to [keep/drop/add noise to] silent frames
 
     // rhythm
-    pool.set("rhythm.beats.compute", false);                 // {false,true}                     | compute beats
+    pool.set("rhythm.beats.compute", false);                // {false,true}                     | compute beats
     pool.set("rhythm.beats.method", "degara");              // {multifeature,degara}            | the method used for beat tracking
     pool.set("rhythm.beats.minTempo", 40);                  // [40,180]                         | the fastest tempo to detect [bpm]
     pool.set("rhythm.beats.maxTempo", 208);                 // [60,250]                         | the slowest tempo to detect [bpm]

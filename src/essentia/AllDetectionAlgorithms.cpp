@@ -55,7 +55,7 @@ namespace essentiawrapper {
 
 void compute(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Pool &options);
 void computeSegments(Pool &neqloudPool, Pool &eqloudPool, const Pool &options);
-void computeReplayGain(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Pool &options);
+void computeReplayGain(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Pool &options, bool skipCalc);
 void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Pool &options, Real startTime, Real endTime, const string &nspace = "");
 void computeMidLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Pool &options, Real startTime, Real endTime, const string &nspace = "");
 void computePanning(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Pool &options, Real startTime, Real endTime, const string &nspace = "");
@@ -155,7 +155,7 @@ void compute(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Poo
     bool fades    = options.value<Real>("fades.compute") != 0;
 
     // compute features for the whole song
-    computeReplayGain(cb, neqloudPool, eqloudPool, options);
+    computeReplayGain(cb, neqloudPool, eqloudPool, options, options.value<Real>("skipReplayGain"));
     Real startTime = options.value<Real>("startTime");
     Real endTime = options.value<Real>("endTime");
     if (eqloud)
@@ -311,123 +311,150 @@ void computeSegments(Pool &neqloudPool, Pool &eqloudPool, const Pool &options)
 }
 
 void computeReplayGain(const callbacks *cb, Pool &neqloudPool,
-                       Pool &eqloudPool, const Pool &options)
+                       Pool &eqloudPool, const Pool &options, bool skipCalc)
 {
-
-    streaming::AlgorithmFactory &factory = streaming::AlgorithmFactory::instance();
-
-    /*************************************************************************
-     *    1st pass: get metadata and replay gain                             *
-     *************************************************************************/
-
-    cout << "Process step 1: Replay Gain" << endl;
-
-    Real analysisSampleRate = options.value<Real>("analysisSampleRate");
 
     bool neqloud = options.value<Real>("nequalLoudness") != 0;
     bool eqloud =  options.value<Real>("equalLoudness")  != 0;
 
+    Real analysisSampleRate = options.value<Real>("analysisSampleRate");
+
     Real startTime = options.value<Real>("startTime");
     Real endTime = options.value<Real>("endTime");
 
-    string downmix = "mix";
-    Real replayGain = 0.0;
-    bool tryReallyHard = true;
-    int length = 0;
-
-    while (tryReallyHard)
+    if (skipCalc)
     {
 
-        Algorithm *streamEqloudloader = new StreamEqloudLoader(cb);
-        streamEqloudloader->declareParameters();
-        streamEqloudloader->configure("sampleRate", analysisSampleRate,
-                                      "startTime",  startTime,
-                                      "endTime",    endTime,
-                                      "downmix",    downmix);
-
-        Algorithm *rgain   = factory.create("ReplayGain",
-                                            "applyEqloud", false);
-
         if (neqloud)
         {
-            neqloudPool.set("metadata.audio_properties.analysis_sample_rate", streamEqloudloader->parameter("sampleRate").toReal());
-            neqloudPool.set("metadata.audio_properties.downmix", downmix);
+            neqloudPool.set("metadata.audio_properties.analysis_sample_rate", analysisSampleRate);
+            neqloudPool.set("metadata.audio_properties.downmix", "mix");
         }
         if (eqloud)
         {
-            eqloudPool.set("metadata.audio_properties.analysis_sample_rate", streamEqloudloader->parameter("sampleRate").toReal());
-            eqloudPool.set("metadata.audio_properties.downmix", downmix);
+            eqloudPool.set("metadata.audio_properties.analysis_sample_rate", analysisSampleRate);
+            eqloudPool.set("metadata.audio_properties.downmix", "mix");
         }
 
-        streamEqloudloader->output("audio")  >>  rgain->input("signal");
-        if (neqloud)
-            rgain->output("replayGain")  >>  PC(neqloudPool, "metadata.audio_properties.replay_gain");
-        if (eqloud)
-            rgain->output("replayGain")  >>  PC(eqloudPool, "metadata.audio_properties.replay_gain");
+        if (neqloud) neqloudPool.set("metadata.audio_properties.replay_gain", -6.0);
+        if (eqloud) eqloudPool.set("metadata.audio_properties.replay_gain", -6.0);
+
+        // set length (actually duration) of the file:
+        if (neqloud) neqloudPool.set("metadata.audio_properties.length", endTime);
+        if (eqloud) eqloudPool.set("metadata.audio_properties.length", endTime);
+
+    }
+    else
+    {
+        streaming::AlgorithmFactory &factory = streaming::AlgorithmFactory::instance();
+
+        /*************************************************************************
+         *    1st pass: get some metadata and replay gain                        *
+         *************************************************************************/
 
         cout << "Process step 1: Replay Gain" << endl;
-        try
-        {
-            Network network(streamEqloudloader);
-            network.run();
-            length = streamEqloudloader->output("audio").totalProduced();
-            tryReallyHard = false;
-        }
 
-        catch (const EssentiaException &)
+        string downmix = "mix";
+        Real replayGain = 0.0;
+        bool tryReallyHard = true;
+        int length = 0;
+
+        while (tryReallyHard)
         {
-            if (downmix == "mix")
+
+            Algorithm *streamEqloudloader = new StreamEqloudLoader(cb);
+            streamEqloudloader->declareParameters();
+            streamEqloudloader->configure("sampleRate", analysisSampleRate,
+                                          "startTime",  startTime,
+                                          "endTime",    endTime,
+                                          "downmix",    downmix);
+
+            Algorithm *rgain   = factory.create("ReplayGain",
+                                                "applyEqloud", false);
+
+            if (neqloud)
             {
-                downmix = "left";
-                try
+                neqloudPool.set("metadata.audio_properties.analysis_sample_rate", streamEqloudloader->parameter("sampleRate").toReal());
+                neqloudPool.set("metadata.audio_properties.downmix", downmix);
+            }
+            if (eqloud)
+            {
+                eqloudPool.set("metadata.audio_properties.analysis_sample_rate", streamEqloudloader->parameter("sampleRate").toReal());
+                eqloudPool.set("metadata.audio_properties.downmix", downmix);
+            }
+
+            streamEqloudloader->output("audio")  >>  rgain->input("signal");
+            if (neqloud)
+                rgain->output("replayGain")  >>  PC(neqloudPool, "metadata.audio_properties.replay_gain");
+            if (eqloud)
+                rgain->output("replayGain")  >>  PC(eqloudPool, "metadata.audio_properties.replay_gain");
+
+            cout << "Process step 1: Replay Gain" << endl;
+            try
+            {
+                Network network(streamEqloudloader);
+                network.run();
+                length = streamEqloudloader->output("audio").totalProduced();
+                tryReallyHard = false;
+            }
+
+            catch (const EssentiaException &)
+            {
+                if (downmix == "mix")
                 {
+                    downmix = "left";
+                    try
+                    {
+                        neqloudPool.remove("metadata.audio_properties.downmix");
+                        neqloudPool.remove("metadata.audio_properties.replay_gain");
+                        eqloudPool.remove("metadata.audio_properties.downmix");
+                        eqloudPool.remove("metadata.audio_properties.replay_gain");
+                    }
+                    catch (EssentiaException &) {}
+
+                    continue;
+                }
+                else
+                {
+                    cerr << "ERROR: File looks like a completely silent file... Aborting..." << endl;
+                    exit(4);
+                }
+            }
+
+            if (eqloud) replayGain = eqloudPool.value<Real>("metadata.audio_properties.replay_gain");
+            else replayGain = neqloudPool.value<Real>("metadata.audio_properties.replay_gain");
+
+            // very high value for replayGain, we are probably analyzing a silence even
+            // though it is not a pure digital silence
+            if (replayGain > 40.0)   // before it was set to 20 but it was found too conservative
+            {
+                // NB: except if it was some electro music where someone thought it was smart
+                //     to have opposite left and right channels... Try with only the left
+                //     channel, then.
+                if (downmix == "mix")
+                {
+                    downmix = "left";
+                    tryReallyHard = true;
                     neqloudPool.remove("metadata.audio_properties.downmix");
                     neqloudPool.remove("metadata.audio_properties.replay_gain");
                     eqloudPool.remove("metadata.audio_properties.downmix");
                     eqloudPool.remove("metadata.audio_properties.replay_gain");
                 }
-                catch (EssentiaException &) {}
-
-                continue;
-            }
-            else
-            {
-                cerr << "ERROR: File looks like a completely silent file... Aborting..." << endl;
-                exit(4);
+                else
+                {
+                    cerr << "ERROR: File looks like a completely silent file... Aborting..." << endl;
+                    exit(5);
+                }
             }
         }
 
-        if (eqloud) replayGain = eqloudPool.value<Real>("metadata.audio_properties.replay_gain");
-        else replayGain = neqloudPool.value<Real>("metadata.audio_properties.replay_gain");
+        // set length (actually duration) of the file:
+        if (neqloud) neqloudPool.set("metadata.audio_properties.length", length / analysisSampleRate);
+        if (eqloud) eqloudPool.set("metadata.audio_properties.length", length / analysisSampleRate);
 
-        // very high value for replayGain, we are probably analyzing a silence even
-        // though it is not a pure digital silence
-        if (replayGain > 40.0)   // before it was set to 20 but it was found too conservative
-        {
-            // NB: except if it was some electro music where someone thought it was smart
-            //     to have opposite left and right channels... Try with only the left
-            //     channel, then.
-            if (downmix == "mix")
-            {
-                downmix = "left";
-                tryReallyHard = true;
-                neqloudPool.remove("metadata.audio_properties.downmix");
-                neqloudPool.remove("metadata.audio_properties.replay_gain");
-                eqloudPool.remove("metadata.audio_properties.downmix");
-                eqloudPool.remove("metadata.audio_properties.replay_gain");
-            }
-            else
-            {
-                cerr << "ERROR: File looks like a completely silent file... Aborting..." << endl;
-                exit(5);
-            }
-        }
+        cout.precision(10);
     }
-    // set length (actually duration) of the file:
-    if (neqloud) neqloudPool.set("metadata.audio_properties.length", length / analysisSampleRate);
-    if (eqloud) eqloudPool.set("metadata.audio_properties.length", length / analysisSampleRate);
 
-    cout.precision(10);
 }
 
 void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
@@ -458,7 +485,7 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
     bool neqloud = options.value<Real>("nequalLoudness") != 0;
     bool eqloud  = options.value<Real>("equalLoudness")  != 0;
 
-    bool doLowLevelSpectral = options.value<Real>("lowlevel.compute") != 0||
+    bool doLowLevelSpectral = options.value<Real>("lowlevel.compute") != 0 ||
                               options.value<Real>("segmentation.desc.lowlevel.compute") != 0 ||
                               options.value<Real>("segmentation.compute") != 0;
 
@@ -491,7 +518,8 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
     if (neqloud)
     {
 
-        if(doLowLevelSpectral) {
+        if (doLowLevelSpectral)
+        {
             LowLevelSpectral(neqloudSource, neqloudPool, options, nspace);
 
             // Low-Level Spectral Equal Loudness Descriptors
@@ -589,7 +617,8 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
     if (eqloud)
     {
 
-        if(doLowLevelSpectral) {
+        if (doLowLevelSpectral)
+        {
             // Low-Level Spectral Descriptors
             LowLevelSpectral(eqloudSource, eqloudPool, options, nspace);
 
