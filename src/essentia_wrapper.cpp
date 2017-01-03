@@ -47,17 +47,21 @@ bool addPoolValue(const char *name, T value)
 
 }
 
-void free_essentia_timestamps(essentia_timestamp *ts)
+void free_essentia_timestamps(essentia_timestamps *ts)
 {
     if (!ts)
     {
         return;
     }
 
+    if(ts->ts) {
+        delete[] ts->ts;
+    }
+
     delete[] ts;
 }
 
-void convertAndAdd(std::vector<essentia_timestamp> &et_vec, std::vector<float> resVec, essentia_ts_type type, std::string algoName)
+void convertAndAdd(std::vector<essentia_timestamps> &et_vec, const std::vector<float> &resVec, essentia_ts_type type)
 {
     if (resVec.empty())
     {
@@ -66,12 +70,11 @@ void convertAndAdd(std::vector<essentia_timestamp> &et_vec, std::vector<float> r
 
     const size_t size = resVec.size();
 
-    essentia_timestamp et;
+    essentia_timestamps et;
     et.tsCount = size;
     et.type = type;
-    et.algo_name = algoName.c_str();
     et.ts = new float[size];
-    for (size_t i = 0; i < size; i++)
+    for (size_t i = 0; i < size; ++i)
     {
         et.ts[i] = resVec[i];
     }
@@ -79,7 +82,7 @@ void convertAndAdd(std::vector<essentia_timestamp> &et_vec, std::vector<float> r
     et_vec.push_back(et);
 }
 
-essentia_timestamp *essentia_analyze(callbacks *cb, uint32_t *count)
+essentia_timestamps *essentia_analyze(callbacks *cb, uint32_t *count)
 {
     if (count == nullptr)
     {
@@ -88,24 +91,28 @@ essentia_timestamp *essentia_analyze(callbacks *cb, uint32_t *count)
 
     essentiawrapper::AllDetectionAlgorithms algo;
 
-    algo.analyze(cb, configPool());
+    essentia::Pool localConfigPool = configPool();
 
-    std::vector<essentia_timestamp> et_vec;
+    bool neqloud = localConfigPool.contains<essentia::Real>("nequalLoudness") && localConfigPool.value<essentia::Real>("nequalLoudness");
 
-    convertAndAdd(et_vec, algo.get("rhythm.beats.position", true), Beats, "Essentia - AllDetect");
-    convertAndAdd(et_vec, algo.get("rhythm.bpm", true), BPM, "Essentia - AllDetect");
-    convertAndAdd(et_vec, algo.get("segmentation.timestamps", true), Segments, "Essentia - AllDetect");
-    convertAndAdd(et_vec, algo.get("fades.fadeIns", true), FadeIns, "Essentia - AllDetect");
-    convertAndAdd(et_vec, algo.get("fades.fadeOuts", true), FadeOuts, "Essentia - AllDetect");
-    convertAndAdd(et_vec, algo.get("rhythm.onset_times", true), Onsets,  "Essentia - AllDetect");
-    convertAndAdd(et_vec, algo.get("average_loudness", true), AverageLoudness, "Essentia - AllDetect");
-    convertAndAdd(et_vec, algo.get("rhythm.danceability", true), Danceability, "Essentia - AllDetect");
+    algo.analyze(cb, localConfigPool);
+
+    std::vector<essentia_timestamps> et_vec;
+
+    convertAndAdd(et_vec, algo.get("rhythm.beats.position", !neqloud), Beats);
+    convertAndAdd(et_vec, algo.get("rhythm.bpm", !neqloud), BPM);
+    convertAndAdd(et_vec, algo.get("segmentation.timestamps", !neqloud), Segments);
+    convertAndAdd(et_vec, algo.get("fades.fadeIns", !neqloud), FadeIns);
+    convertAndAdd(et_vec, algo.get("fades.fadeOuts", !neqloud), FadeOuts);
+    convertAndAdd(et_vec, algo.get("rhythm.onset_times", !neqloud), Onsets);
+    convertAndAdd(et_vec, algo.get("average_loudness", !neqloud), AverageLoudness);
+    convertAndAdd(et_vec, algo.get("rhythm.danceability", !neqloud), Danceability);
 
     const size_t size = et_vec.size();
 
     *count = static_cast<uint32_t>(size);
 
-    essentia_timestamp *timestamps = new essentia_timestamp[size];
+    essentia_timestamps *timestamps = new essentia_timestamps[size];
     std::copy(std::begin(et_vec), std::end(et_vec), timestamps);
 
     return timestamps;

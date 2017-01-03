@@ -12,8 +12,8 @@ class IEssentiaAlgorithm
 {
 public:
     virtual ~IEssentiaAlgorithm() = default;
-    virtual void analyze(callbacks* cb, const essentia::Pool& config) = 0;
-    virtual std::vector<float> get(std::string configName, bool eqLoudPool) = 0;
+    virtual void analyze(callbacks *cb, const essentia::Pool &config) = 0;
+    virtual std::vector<float> get(const std::string &configName, bool eqLoudPool) = 0;
 };
 
 typedef std::shared_ptr<IEssentiaAlgorithm> IEssentiaAlgorithmPtr_t;

@@ -118,7 +118,7 @@ void AllDetectionAlgorithms::analyze(callbacks *cb, const Pool &config)
 
 }
 
-std::vector<float> AllDetectionAlgorithms::get(std::string configName, bool eqLoudPool)
+std::vector<float> AllDetectionAlgorithms::get(const string &configName, bool eqLoudPool)
 {
     if (eqLoudPool)
     {
@@ -339,6 +339,10 @@ void computeReplayGain(const callbacks *cb, Pool &neqloudPool,
         if (neqloud) neqloudPool.set("metadata.audio_properties.replay_gain", -6.0);
         if (eqloud) eqloudPool.set("metadata.audio_properties.replay_gain", -6.0);
 
+        cb->open_audio(cb->audio_file, 44100, 2, Float);
+        endTime = cb->get_file_length(cb->audio_file) / (double)1000000000;
+        cb->close_audio(cb->audio_file);
+
         // set length (actually duration) of the file:
         if (neqloud) neqloudPool.set("metadata.audio_properties.length", endTime);
         if (eqloud) eqloudPool.set("metadata.audio_properties.length", endTime);
@@ -476,8 +480,6 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
         rhythmspace = nspace + ".rhythm.";
     }
 
-    bool shortsound = options.value<Real>("shortSound")  != 0;
-
     Real analysisSampleRate = options.value<Real>("analysisSampleRate");
     Real replayGain = 0;
     string downmix = "mix";
@@ -535,7 +537,7 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
         bool computeAverageLoudness = nspace.empty() ?
                                       options.value<Real>("average_loudness.compute") != 0 :
                                       options.value<Real>("segmentation.desc.average_loudness.compute") != 0;
-        if (!shortsound || computeAverageLoudness)
+        if (computeAverageLoudness)
             Level(eqloudSource, neqloudPool, options, nspace);
 
         // Tuning Frequency
@@ -633,7 +635,7 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
         bool computeAverageLoudness = nspace.empty() ?
                                       options.value<Real>("average_loudness.compute") != 0 :
                                       options.value<Real>("segmentation.desc.average_loudness.compute") != 0;
-        if (!shortsound || computeAverageLoudness)
+        if (computeAverageLoudness)
             Level(eqloudSource, eqloudPool, options, nspace);
 
         // Tuning Frequency
@@ -713,22 +715,6 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
 
     Network network(streamEasyLoader);
     network.run();
-
-    if (!shortsound)
-    {
-        // check if we processed enough audio for it to be useful, in particular did
-        // we manage to get an estimation for the loudness (2 seconds required)
-        try
-        {
-            if (eqloud) eqloudPool.value<vector<Real> >(llspace + "loudness")[0];
-            else neqloudPool.value<vector<Real> >(llspace + "loudness")[0];
-        }
-        catch (EssentiaException &)
-        {
-            cerr << "ERROR: File is too short (< 2sec)... Aborting..." << endl;
-            exit(6);
-        }
-    }
 
     bool computeOnsets = nspace.empty() ?
                          options.value<Real>("rhythm.onset.compute") != 0 :
@@ -1110,6 +1096,18 @@ void computeHighlevel(Pool &pool, const Pool &options, const string &nspace)
     bool computeAverageLoudness = nspace.empty() ?
                                   options.value<Real>("average_loudness.compute") != 0 :
                                   options.value<Real>("segmentation.desc.average_loudness.compute") != 0;
+
+    // did we manage to get an estimation for the loudness during low level compute (2 seconds required)
+    try
+    {
+        string llspace = "lowlevel.";
+        pool.value<vector<Real> >(llspace + "loudness")[0];
+    }
+    catch (EssentiaException &)
+    {
+        computeAverageLoudness = false;
+    }
+
     if (computeAverageLoudness)
         LevelAverage(pool, nspace);
 

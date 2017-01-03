@@ -45,6 +45,6 @@ essentia::Pool computeAggregation(Pool &pool, const Pool &options, int segments 
 void cleanUp(Pool &pool, const Pool &options);
 void outputToFile(Pool &pool, const string &outputFilename, const Pool &options);
 
-vector<float> getResult(Pool &pool, string name);
+vector<float> getResult(Pool &pool, const string &name);
 
 #endif // STREAMING_EXTRACTOR_METADATA_H
