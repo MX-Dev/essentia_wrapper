@@ -168,8 +168,13 @@ typedef bool (*open_audio_fct)(audio_file_handle file, uint32_t sample_rate, uin
 
 /**
  * @brief read_audio_fct Callback function to read audio samples from audio file.
+ *
+ * This callback reads one buffer from the audio file. The buffer size could be set by the reader but
+ * you should bear in mind that essentia make a copy of that buffer for analyzis, so it is important to
+ * have enough system memory to hold the buffers.
+ *
  * @param file The file handle for the audio file.
- * @return
+ * @return an audio buffer or nullptr if no more data available
  */
 typedef audio_buffer* (*read_audio_fct)(audio_file_handle file);
 
