@@ -104,10 +104,10 @@ void AllDetectionAlgorithms::analyze(callbacks *cb, const Pool &config)
     bool neqloud = mergedOptions.value<Real>("nequalLoudness") != 0;
     bool eqloud =  mergedOptions.value<Real>("equalLoudness")  != 0;
 
-    if (!eqloud && !neqloud)
+    if ((!eqloud && !neqloud) || (eqloud && neqloud))
     {
         throw EssentiaException("Configuration for both equal loudness and non\
-           equal loudness is set to false. At least one must set to true");
+           equal loudness is set to false or true. At least and only one must be set to true");
     }
 
     cout << "-------- start processing --------" << endl;
@@ -165,7 +165,8 @@ void compute(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool, const Poo
             endTime = eqloudPool.value<Real>("metadata.audio_properties.length");
         }
     }
-    else
+
+    if (neqloud)
     {
         if (endTime > neqloudPool.value<Real>("metadata.audio_properties.length"))
         {
@@ -273,9 +274,8 @@ void computeSegments(Pool &neqloudPool, Pool &eqloudPool, const Pool &options)
     vector<vector<Real> > features;
     try
     {
-        if (eqloud)
-            features = eqloudPool.value<vector<vector<Real> > >("lowlevel.mfcc");
-        else features = neqloudPool.value<vector<vector<Real> > >("lowlevel.mfcc");
+        if (neqloud) features = neqloudPool.value<vector<vector<Real> > >("lowlevel.mfcc");
+        if (eqloud) features = eqloudPool.value<vector<vector<Real> > >("lowlevel.mfcc");
     }
     catch (const EssentiaException &)
     {
@@ -426,7 +426,7 @@ void computeReplayGain(const callbacks *cb, Pool &neqloudPool,
             }
 
             if (eqloud) replayGain = eqloudPool.value<Real>("metadata.audio_properties.replay_gain");
-            else replayGain = neqloudPool.value<Real>("metadata.audio_properties.replay_gain");
+            if (neqloud) replayGain = neqloudPool.value<Real>("metadata.audio_properties.replay_gain");
 
             // very high value for replayGain, we are probably analyzing a silence even
             // though it is not a pure digital silence
@@ -491,12 +491,24 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
                               options.value<Real>("segmentation.desc.lowlevel.compute") != 0 ||
                               options.value<Real>("segmentation.compute") != 0;
 
+    bool computeAverageLoudness = nspace.empty() ?
+                                  options.value<Real>("average_loudness.compute") != 0 :
+                                  options.value<Real>("segmentation.desc.average_loudness.compute") != 0;
+
+    bool computeTonal = nspace.empty() ?
+                        options.value<Real>("tonal.compute") != 0 :
+                        options.value<Real>("segmentation.desc.tonal.compute") != 0;
+
+    bool computeBeats = nspace.empty() ?
+                        options.value<Real>("rhythm.beats.compute") != 0 :
+                        options.value<Real>("segmentation.desc.rhythm.beats.compute") != 0;
+
     if (eqloud)
     {
         replayGain = eqloudPool.value<Real>("metadata.audio_properties.replay_gain");
         downmix = eqloudPool.value<string>("metadata.audio_properties.downmix");
     }
-    else
+    if (neqloud)
     {
         replayGain = neqloudPool.value<Real>("metadata.audio_properties.replay_gain");
         downmix = neqloudPool.value<string>("metadata.audio_properties.downmix");
@@ -512,10 +524,13 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
                                 "replayGain", replayGain,
                                 "downmix",    downmix);
 
+    Algorithm *eqloudnesser = factory.create("EqualLoudness");
+    if(eqloud || doLowLevelSpectral || computeAverageLoudness)
+    {
+        connect(streamEasyLoader->output("audio"), eqloudnesser->input("signal"));
+    }
     SourceBase &neqloudSource = streamEasyLoader->output("audio");
-    Algorithm *eqloud2 = factory.create("EqualLoudness");
-    connect(streamEasyLoader->output("audio"), eqloud2->input("signal"));
-    SourceBase &eqloudSource = eqloud2->output("signal");
+    SourceBase &eqloudSource = eqloudnesser->output("signal");
 
     if (neqloud)
     {
@@ -534,23 +549,14 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
         // expects the audio source to already be equal-loudness filtered, so it
         // must use the eqloudSouce instead of neqloudSource
         // results needed for average loudness
-        bool computeAverageLoudness = nspace.empty() ?
-                                      options.value<Real>("average_loudness.compute") != 0 :
-                                      options.value<Real>("segmentation.desc.average_loudness.compute") != 0;
         if (computeAverageLoudness)
             Level(eqloudSource, neqloudPool, options, nspace);
 
         // Tuning Frequency
-        bool computeTonal = nspace.empty() ?
-                            options.value<Real>("tonal.compute") != 0 :
-                            options.value<Real>("segmentation.desc.tonal.compute") != 0;
         if (computeTonal)
             TuningFrequency(neqloudSource, neqloudPool, options, nspace);
 
         // Rhythm descriptor - beats
-        bool computeBeats = nspace.empty() ?
-                            options.value<Real>("rhythm.beats.compute") != 0 :
-                            options.value<Real>("segmentation.desc.rhythm.beats.compute") != 0;
         if (computeBeats)
         {
 
@@ -632,23 +638,14 @@ void computeLowLevel(const callbacks *cb, Pool &neqloudPool, Pool &eqloudPool,
         // Level Descriptor
         // expects the audio source to already be equal-loudness filtered
         // results needed for average_loudness
-        bool computeAverageLoudness = nspace.empty() ?
-                                      options.value<Real>("average_loudness.compute") != 0 :
-                                      options.value<Real>("segmentation.desc.average_loudness.compute") != 0;
         if (computeAverageLoudness)
             Level(eqloudSource, eqloudPool, options, nspace);
 
         // Tuning Frequency
-        bool computeTonal = nspace.empty() ?
-                            options.value<Real>("tonal.compute") != 0 :
-                            options.value<Real>("segmentation.desc.tonal.compute") != 0;
         if (computeTonal)
             TuningFrequency(eqloudSource, eqloudPool, options, nspace);
 
         // Rhythm descriptor - beats
-        bool computeBeats = nspace.empty() ?
-                            options.value<Real>("rhythm.beats.compute") != 0 :
-                            options.value<Real>("segmentation.desc.rhythm.beats.compute") != 0;
         if (computeBeats)
         {
 
@@ -766,7 +763,7 @@ void computeMidLevel(const callbacks *cb, Pool &neqloudPool,
         replayGain = eqloudPool.value<Real>("metadata.audio_properties.replay_gain");
         downmix = eqloudPool.value<string>("metadata.audio_properties.downmix");
     }
-    else
+    if (neqloud)
     {
         replayGain = neqloudPool.value<Real>("metadata.audio_properties.replay_gain");
         downmix = neqloudPool.value<string>("metadata.audio_properties.downmix");
@@ -811,6 +808,7 @@ void computeMidLevel(const callbacks *cb, Pool &neqloudPool,
             connect(beatsLoudness->output("loudnessBandRatio"), neqloudPool, rhythmspace + "beats.loudness_band_ratio");
         }
     }
+
     if (eqloud)
     {
         Algorithm *eqloud3 = factory.create("EqualLoudness");
@@ -988,7 +986,7 @@ void computeFades(const callbacks *cb, Pool &neqloudPool,
         replayGain = eqloudPool.value<Real>("metadata.audio_properties.replay_gain");
         downmix = eqloudPool.value<string>("metadata.audio_properties.downmix");
     }
-    else
+    if (neqloud)
     {
         replayGain = neqloudPool.value<Real>("metadata.audio_properties.replay_gain");
         downmix = neqloudPool.value<string>("metadata.audio_properties.downmix");
